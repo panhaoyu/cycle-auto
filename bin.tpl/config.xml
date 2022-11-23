@@ -1,87 +1,101 @@
 <?xml version="1.0" encoding="utf-8"?>
-<cfg>		
-  <Macros MODULES="" DATA="/datas2/share/alpha_bar/DestData/"/>
-  <!--Macros MODULES="" DATA="/datas/share/stock_bar_data_sim/"/-->
+<cfg>
+    <Macros MODULES="" DATA="/datas2/share/alpha_bar/DestData/"/>
+    <!--Macros MODULES="" DATA="/datas/share/stock_bar_data_sim/"/-->
 
-  <!-- some constants, like backdays, are required. others are welcome -->
-  <Constants runmode   = "backtest" startdate = "20170104" enddate   = "20210730" />
-  <!--Constants runmode   = "backtest" startdate = "20120104" enddate   = "20170831" /-->
+    <!-- some constants, like backdays, are required. others are welcome -->
+    <Constants runmode="backtest" startdate="20170104" enddate="20210730"/>
+    <!--Constants runmode   = "backtest" startdate = "20120104" enddate   = "20170831" /-->
 
-  <!-- can set attributes like minvol, etc. -->
-   <Universe disable = "000022.SZ|"/>
+    <!-- can set attributes like minvol, etc. -->
+    <Universe disable="000022.SZ|"/>
 
-  <Modules>
-      <Module id="CTAPort"             path="/datas/share/Msimrelease_stkbar/modules/hfs_stk_bar_port.so"                handler=""/>
-      <Module id="CTAFeed"              path="/datas/share/Msimrelease_stkbar/modules/hfs_stk_bar_datafeed.so"            handler=""/>
-      <Module id="SimpleCombo"          path="/datas/share/Msimrelease_stkbar/modules/hfs_stk_bar_simple_combo.so"        handler=""/>
-      <Module id="SimTradeZY2"           path="/datas/share/Msimrelease_stkbar/modules/hfs_sim_trade9.so"                  handler=""/>
-      <Module id="SimTradeIntra"           path="/datas/share/Msimrelease_stkbar/modules/hfs_sim_trade_intra.so"   
-		 longOnly="false" rebFreq="4" tolerance="5" benchmark="" numQtls="5" numStks="4460" offset="50" lagMinute="1" minslen="15"
-         delay = "0"  slippage="0.00"  pnlDir="cache/pnl"  handler="" detail="false"/>
-
-    
-      <Module id="SimTradeIntra2"           path="/datas/share/Msimrelease_stkbar/modules/hfs_sim_trade_intra2.so"   
-                 longOnly="false" rebFreq="4" tolerance="5" benchmark="" numQtls="5" numStks="4460" offset="50" lagMinute="1" minslen="15"
-         delay = "0"  slippage="0.00"  pnlDir="cache/pnl" detail="false" handler=""/>
-
-      <Module id="RiskStats"            path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_risk.so"              handler=""/>
-      <Module id="StatsFast"            path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_fast.so"              handler=""/>
-      <Module id="StatsSimple"  path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_silent.so" handler=""/>
-      <Module id="AlphaOpAbs"           path="/datas/share/Msimrelease_stkbar/modules/hfs_op_abs.so"                      handler=""/>
-      <Module id="AlphaOpTradeConstraint"         path="/datas/share/Msimrelease_stkbar/modules/hfs_op_trade_constraint.so"          handler=""/>
-      <Module id="AlphaOpRank"          path="/datas/share/Msimrelease_stkbar/modules/hfs_op_rank.so"                     handler=""/>
-      <Module id="AlphaOpZScore"        path="/datas/share/Msimrelease_stkbar/modules/hfs_op_zscore.so"                   handler=""/>
-      <Module id="AlphaOpWinsorize"     path="/datas/share/Msimrelease_stkbar/modules/hfs_op_winsorize.so"                handler=""/>
-      <Module id="AlphaOpLinDecay"      path="/datas/share/Msimrelease_stkbar/modules/hfs_op_linear_decay.so"             handler=""/>
-      <Module id="AlphaOpEmaDecay"      path="/datas/share/Msimrelease_stkbar/modules/hfs_op_expdecay.so"                 handler=""/>
-      <Module id="AlphaOpRiskNeut"      path="/datas/share/Msimrelease_stkbar/modules/hfs_op_risk_neutral.so"             handler=""/>
-      <Module id="AlphaOpRiskNeutRank"      path="/datas/share/Msimrelease_stkbar/modules/hfs_op_rank_risk_neutral.so"             handler=""/>
-      <Module id="OpNeutralize"         path="/datas/share/Msimrelease_stkbar/modules/hfs_op_rank_risks_neutral.so"             handler=""/>
-      <Module id="AlphaOpIndNeut"       path="/datas/share/Msimrelease_stkbar/modules/hfs_op_sector_neutral.so"           handler=""/>
-      <Module id="AlphaOpMktCapNeut"    path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_neutral.so"           handler=""/>
-      <Module id="AlphaOpCapSecNeut"    path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_sector_neutral.so"    handler=""/>
-      <Module id="AlphaOpRiskNeutDelay"      path="/datas/share/Msimrelease_stkbar/modules/hfs_op_risk_neutral_delay.so"       handler=""/>
-      <Module id="AlphaOpIndNeutDelay"       path="/datas/share/Msimrelease_stkbar/modules/hfs_op_sector_neutral_delay.so"     handler=""/>
-      <Module id="AlphaOpMktCapNeutDelay"    path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_neutral_delay.so"     handler=""/>
-      <Module id="AlphaOpCapSecNeutDelay"    path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_sector_neutral_delay.so"    handler=""/>
-       <Module id="StatsDumpAlpha"           path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_dump_alpha.so"       handler=""
-                 delay="0" offset="50" freq="60"   dumpAlphaDir="/datas/student/AlphaTest/" />
-        <Module id="StatsBacktest"           path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_pnl_stats.so"       handler=""
-                           delay="0" offset="50" freq="60"  ret="ret_1d" weight="rank" dumpAlphaDir="/datas/student/AlphaTest/" dumpMode="sum" />
- </Modules>
-
-  <Datafeed moduleId="CTAFeed" id="MyFeed" runmode="backtest"/>
-  <Portfolio booksize="1e9" moduleId="CTAPort" id="MyPort" printStats="true" combinationId="SimpleCombo" 
-	  alphacode="/home/student/work/alpha/pybsim/bin/" tradeId="SimTradeIntra">
-    <Config longOnly="false" rebFreq="1" tolerance="5" benchmark="" numQtls="5" numStks="4460" />
+    <Modules>
+        <Module id="CTAPort" path="/datas/share/Msimrelease_stkbar/modules/hfs_stk_bar_port.so" handler=""/>
+        <Module id="CTAFeed" path="/datas/share/Msimrelease_stkbar/modules/hfs_stk_bar_datafeed.so" handler=""/>
+        <Module id="SimpleCombo" path="/datas/share/Msimrelease_stkbar/modules/hfs_stk_bar_simple_combo.so" handler=""/>
+        <Module id="SimTradeZY2" path="/datas/share/Msimrelease_stkbar/modules/hfs_sim_trade9.so" handler=""/>
+        <Module id="SimTradeIntra" path="/datas/share/Msimrelease_stkbar/modules/hfs_sim_trade_intra.so"
+                longOnly="false" rebFreq="4" tolerance="5" benchmark="" numQtls="5" numStks="4460" offset="50"
+                lagMinute="1" minslen="15"
+                delay="0" slippage="0.00" pnlDir="cache/pnl" handler="" detail="false"/>
 
 
-    <!--Stats moduleId="StatsFast" vwappnl="false" btPrc="clse_adj" cost="true" slippage="0.0000" longOnly="false" numQtls="5" 
-                  benchmark=""  pnlDir="./cache/pnl/" delay="0" numStks="3613" /-->
-     <!--Stats moduleId="RiskStats" factors="BP,EP,CAP,LIQ_5,LIQ_20,VOLA_20,RET_5,RET_10,RET_20,RET_50" numQtls="10" numStks="3613"/-->
-     <Stats moduleId="StatsBacktest" />
-	<!--Stats moduleId="StatsBacktest" />--> 
-	<!--Stats moduleId="StatsDumpAlpha" />-->
+        <Module id="SimTradeIntra2" path="/datas/share/Msimrelease_stkbar/modules/hfs_sim_trade_intra2.so"
+                longOnly="false" rebFreq="4" tolerance="5" benchmark="" numQtls="5" numStks="4460" offset="50"
+                lagMinute="1" minslen="15"
+                delay="0" slippage="0.00" pnlDir="cache/pnl" detail="false" handler=""/>
 
-    <!-- putting your alphas here-->
+        <Module id="RiskStats" path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_risk.so" handler=""/>
+        <Module id="StatsFast" path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_fast.so" handler=""/>
+        <Module id="StatsSimple" path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_silent.so" handler=""/>
+        <Module id="AlphaOpAbs" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_abs.so" handler=""/>
+        <Module id="AlphaOpTradeConstraint" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_trade_constraint.so"
+                handler=""/>
+        <Module id="AlphaOpRank" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_rank.so" handler=""/>
+        <Module id="AlphaOpZScore" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_zscore.so" handler=""/>
+        <Module id="AlphaOpWinsorize" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_winsorize.so" handler=""/>
+        <Module id="AlphaOpLinDecay" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_linear_decay.so" handler=""/>
+        <Module id="AlphaOpEmaDecay" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_expdecay.so" handler=""/>
+        <Module id="AlphaOpRiskNeut" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_risk_neutral.so" handler=""/>
+        <Module id="AlphaOpRiskNeutRank" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_rank_risk_neutral.so"
+                handler=""/>
+        <Module id="OpNeutralize" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_rank_risks_neutral.so"
+                handler=""/>
+        <Module id="AlphaOpIndNeut" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_sector_neutral.so" handler=""/>
+        <Module id="AlphaOpMktCapNeut" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_neutral.so"
+                handler=""/>
+        <Module id="AlphaOpCapSecNeut" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_sector_neutral.so"
+                handler=""/>
+        <Module id="AlphaOpRiskNeutDelay" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_risk_neutral_delay.so"
+                handler=""/>
+        <Module id="AlphaOpIndNeutDelay" path="/datas/share/Msimrelease_stkbar/modules/hfs_op_sector_neutral_delay.so"
+                handler=""/>
+        <Module id="AlphaOpMktCapNeutDelay"
+                path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_neutral_delay.so" handler=""/>
+        <Module id="AlphaOpCapSecNeutDelay"
+                path="/datas/share/Msimrelease_stkbar/modules/hfs_op_mktcap_sector_neutral_delay.so" handler=""/>
+        <Module id="StatsDumpAlpha" path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_stats_dump_alpha.so"
+                handler=""
+                delay="0" offset="50" freq="60" dumpAlphaDir="/datas/student/AlphaTest/"/>
+        <Module id="StatsBacktest" path="/datas/share/Msimrelease_stkbar/modules/hfs_bar_pnl_stats.so" handler=""
+                delay="0" offset="50" freq="60" ret="ret_1d" weight="rank" dumpAlphaDir="/datas/student/AlphaTest/"
+                dumpMode="sum"/>
+    </Modules>
 
-          <!--Alpha moduleId="hfs_model_R00001" id="abret_500" universeId="ALL" delay="0" dumpAlphaFile="true"  freq="60" offset="50"
-                                    dumpAlphaDir="/datas2/share/rets/">
-            <Config ndayX="1" nlag="1" nmin="15" abrets = "true" />
-         <Operation moduleId="AlphaOpIndNeut"  /> 
-         <Operation moduleId="AlphaOpMktCapNeut"  /> 
-         </Alpha-->
-
-         <Alpha moduleId="hfs_model_pybsim" id="Alpha_XYF000001"   universeId="ALL"   delay="1"   dumpAlphaFile="true"   freq="240"  offset="0"
-             dumpAlphaDir="/datas/student/AlphaTest/">
-         <Config alphaname="Alpha_XYF000001" nday="5" startdate="20040101" enddate="20210730" />
-         <Operations>
-           <Operation moduleId="AlphaOpIndNeut"  />
-         </Operations>
-     </Alpha>
+    <Datafeed moduleId="CTAFeed" id="MyFeed" runmode="backtest"/>
+    <Portfolio booksize="1e9" moduleId="CTAPort" id="MyPort" printStats="true" combinationId="SimpleCombo"
+               alphacode="/home/student/work/alpha/pybsim/bin/" tradeId="SimTradeIntra">
+        <Config longOnly="false" rebFreq="1" tolerance="5" benchmark="" numQtls="5" numStks="4460"/>
 
 
-  </Portfolio>
+        <!--Stats moduleId="StatsFast" vwappnl="false" btPrc="clse_adj" cost="true" slippage="0.0000" longOnly="false" numQtls="5"
+                      benchmark=""  pnlDir="./cache/pnl/" delay="0" numStks="3613" /-->
+        <!--Stats moduleId="RiskStats" factors="BP,EP,CAP,LIQ_5,LIQ_20,VOLA_20,RET_5,RET_10,RET_20,RET_50" numQtls="10" numStks="3613"/-->
+        <Stats moduleId="StatsBacktest"/>
+        <!--Stats moduleId="StatsBacktest" />-->
+        <!--Stats moduleId="StatsDumpAlpha" />-->
+
+        <!-- putting your alphas here-->
+
+        <!--Alpha moduleId="hfs_model_R00001" id="abret_500" universeId="ALL" delay="0" dumpAlphaFile="true"  freq="60" offset="50"
+                                  dumpAlphaDir="/datas2/share/rets/">
+          <Config ndayX="1" nlag="1" nmin="15" abrets = "true" />
+       <Operation moduleId="AlphaOpIndNeut"  />
+       <Operation moduleId="AlphaOpMktCapNeut"  />
+       </Alpha-->
+
+        <Alpha moduleId="hfs_model_pybsim" id="Alpha_XYF000001" universeId="ALL" delay="1" dumpAlphaFile="true"
+               freq="240" offset="0"
+               dumpAlphaDir="/datas/student/AlphaTest/">
+            <Config alphaname="Alpha_XYF000001" nday="5" startdate="20040101" enddate="20210730"/>
+            <Operations>
+                <Operation moduleId="AlphaOpIndNeut"/>
+            </Operations>
+        </Alpha>
+
+
+    </Portfolio>
 </cfg>
 
 

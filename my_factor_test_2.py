@@ -5,17 +5,19 @@ import shutil
 from pathlib import Path
 
 import pandas as pd
+from lxml import etree
 
 base_dir = Path(__file__).parent
 data_dir = Path('/datas/student/AlphaTest')
 
 bin_template_dir = base_dir / 'bin.tpl'
-bin_dir = base_dir / 'bin'
+bin_dir = base_dir / 'bin-3'
 
-pylib_template_file = base_dir / 'Alpha_XYF000001.py'
-pylib_file = bin_dir / 'Alpha_XYF000001.py'
+pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
+pylib_file = bin_dir / 'Alpha_XYF000004.py'
 
 pysim_file = bin_dir / 'pybsim'
+config_file = bin_dir / 'config.xml'
 my_factor_test_file = bin_dir / 'my_factor_test.py'
 excel_file = base_dir / 'variable.xlsx'
 pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
@@ -63,6 +65,18 @@ def all_for_one_value(value):
     shutil.copy(pylib_template_file, pylib_file)
     pysim_file.chmod(0o755)
     change_name(value)
+    with open(config_file, 'rb') as f:
+        config_content = f.read()
+    tree = etree.fromstring(config_content)
+    element = tree.xpath('//Portfolio')[0]
+    element.attrib['alphacode'] = str(bin_dir)
+    element = element.xpath('./Alpha')[0]
+    element.attrib['id'] = pylib_file.stem
+    element = element.xpath('./Config')[0]
+    element.attrib['alphaname'] = pylib_file.stem
+    config_content = etree.tostring(tree)
+    with open(config_file, 'wb') as f:
+        f.write(config_content)
     result = execute()
     if result > 0.2:
         print(f'Find available: {value} -> {result}, copy to result dir.')
