@@ -6,22 +6,27 @@ from pathlib import Path
 
 import pandas as pd
 
-os.chdir('/home/student/work/alpha/pybsim/bin/')
-command = ('python3 '
-           '/home/student/work/alpha/pybsim/bin/my_factor_test.py '
-           '/datas/student/AlphaTest/Alpha_XYF000001.pnl.txt')
-pylib_file = Path('/home/student/work/alpha/pybsim/pylib/Alpha_XYF000001.py')
-output_dir = pylib_file.parent.parent / 'output'
+base_dir = Path(__file__).parent
+data_dir = Path('/datas/student/AlphaTest')
+bin_dir = base_dir / 'bin'
+pylib_file = bin_dir / 'Alpha_XYF000001.py'
+pysim_file = bin_dir / 'pybsim'
+my_factor_test_file = bin_dir / 'my_factor_test.py'
+excel_file = base_dir / 'variable.xlsx'
+pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
+pysim_file.chmod(0o755)
+output_dir = base_dir / 'output'
 output_dir.mkdir(parents=True, exist_ok=True)
 
 
 def execute():
     """执行原有的 my_factor_test 脚本，并获取结果"""
     print('Executing ...')
-    os.popen('PYTHONPATH=$PYTHONPATH:/home/student/work/alpha/pybsim/pylib/ ./pybsim').read()
+    os.chdir(bin_dir)
+    os.popen(f'PYTHONPATH=$PYTHONPATH:{bin_dir} {pysim_file}').read()
     print('Executed.')
-    command_results = os.popen(command).readlines()
-    selected_line = [l for l in command_results if l.startswith('Alpha_XYF000001')][0]
+    command_results = os.popen(f'python3 {my_factor_test_file} {pnl_file}').readlines()
+    selected_line = [l for l in command_results if l.startswith(pylib_file.stem)][0]
     result = float(selected_line.split()[2])
     return result
 
@@ -49,8 +54,7 @@ def change_name(name: str):
 
 
 def main():
-    path = Path('/home/student/work/alpha/pybsim/pylib/variable.xlsx')
-    df = pd.read_excel(path, header=None)
+    df = pd.read_excel(excel_file, header=None)
     values = list(df.loc[:, 0])
     for i in values:
         change_name(i)
@@ -58,6 +62,7 @@ def main():
         if result > 0.2:
             print(f'Find available: {i} -> {result}, copy to result dir.')
             shutil.copy(pylib_file, output_dir / datetime.datetime.now().strftime('%Y%m%d-%H%M%S.py'))
+        break
 
 
 if __name__ == '__main__':

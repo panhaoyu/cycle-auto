@@ -52,7 +52,7 @@
 
   <Datafeed moduleId="CTAFeed" id="MyFeed" runmode="backtest"/>
   <Portfolio booksize="1e9" moduleId="CTAPort" id="MyPort" printStats="true" combinationId="SimpleCombo" 
-	  alphacode="/home/student/work/alpha/pybsim/pylib/" tradeId="SimTradeIntra">
+	  alphacode="/home/student/work/alpha/pybsim/bin/" tradeId="SimTradeIntra">
     <Config longOnly="false" rebFreq="1" tolerance="5" benchmark="" numQtls="5" numStks="4460" />
 
 
