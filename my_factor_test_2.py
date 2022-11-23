@@ -8,13 +8,17 @@ import pandas as pd
 
 base_dir = Path(__file__).parent
 data_dir = Path('/datas/student/AlphaTest')
+
+bin_template_dir = base_dir / 'bin.tpl'
 bin_dir = base_dir / 'bin'
+
+pylib_template_file = base_dir / 'Alpha_XYF000001.py'
 pylib_file = bin_dir / 'Alpha_XYF000001.py'
+
 pysim_file = bin_dir / 'pybsim'
 my_factor_test_file = bin_dir / 'my_factor_test.py'
 excel_file = base_dir / 'variable.xlsx'
 pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
-pysim_file.chmod(0o755)
 output_dir = base_dir / 'output'
 output_dir.mkdir(parents=True, exist_ok=True)
 
@@ -23,7 +27,7 @@ def execute():
     """执行原有的 my_factor_test 脚本，并获取结果"""
     print('Executing ...')
     os.chdir(bin_dir)
-    os.popen(f'PYTHONPATH=$PYTHONPATH:{bin_dir} {pysim_file}').read()
+    os.popen(f'PYTHONPATH=$PYTHONPATH:{bin_dir} ./pybsim').read()
     print('Executed.')
     command_results = os.popen(f'python3 {my_factor_test_file} {pnl_file}').readlines()
     selected_line = [l for l in command_results if l.startswith(pylib_file.stem)][0]
@@ -53,15 +57,23 @@ def change_name(name: str):
         f.writelines(lines)
 
 
+def all_for_one_value(value):
+    shutil.rmtree(bin_dir, ignore_errors=True)
+    shutil.copytree(bin_template_dir, bin_dir)
+    shutil.copy(pylib_template_file, pylib_file)
+    pysim_file.chmod(0o755)
+    change_name(value)
+    result = execute()
+    if result > 0.2:
+        print(f'Find available: {value} -> {result}, copy to result dir.')
+        shutil.copy(pylib_file, output_dir / datetime.datetime.now().strftime('%Y%m%d-%H%M%S.py'))
+
+
 def main():
     df = pd.read_excel(excel_file, header=None)
     values = list(df.loc[:, 0])
     for i in values:
-        change_name(i)
-        result = execute()
-        if result > 0.2:
-            print(f'Find available: {i} -> {result}, copy to result dir.')
-            shutil.copy(pylib_file, output_dir / datetime.datetime.now().strftime('%Y%m%d-%H%M%S.py'))
+        all_for_one_value(i)
         break
 
 
