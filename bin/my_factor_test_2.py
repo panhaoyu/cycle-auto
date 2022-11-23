@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
+os.chdir('/home/student/work/alpha/pybsim/bin/')
 command = ('python3 '
            '/home/student/work/alpha/pybsim/bin/my_factor_test.py '
            '/datas/student/AlphaTest/Alpha_XYF000001.pnl.txt')
@@ -14,6 +15,9 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 def execute():
     """执行原有的 my_factor_test 脚本，并获取结果"""
+    print('Executing ...')
+    os.popen('PYTHONPATH=$PYTHONPATH:/home/student/work/alpha/pybsim/pylib/ ./pybsim').read()
+    print('Executed.')
     command_results = os.popen(command).readlines()
     selected_line = [l for l in command_results if l.startswith('Alpha_XYF000001')][0]
     result = float(selected_line.split()[2])
@@ -37,7 +41,6 @@ def change_name(name: str):
             name, value = name.strip(), value.strip()
             value = changed_values.get(name, value)
             lines[index] = f'{name} = {value} {end_marker}'
-            print(lines[index])
     lines = [f'{l}\n' for l in lines]
     with open(pylib_file, 'w', encoding='utf-8') as f:
         f.writelines(lines)
