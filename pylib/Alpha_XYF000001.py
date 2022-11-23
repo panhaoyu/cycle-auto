@@ -15,8 +15,7 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-### Auto edit
-changeable_value = 'RECP_TAX_RENDS'
+changeable_value = 'RECP_TAX_RENDS'  # Auto edit, please don't change
 
 
 class PYMODEL(hfs_base_model):
