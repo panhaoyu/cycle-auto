@@ -1,5 +1,7 @@
 # 由于难以更改 config.xml 等一系列的配置文件，故直接再加一层脚本直接调用。
+import datetime
 import os
+import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -53,7 +55,9 @@ def main():
     for i in values:
         change_name(i)
         result = execute()
-        print(i, result)
+        if result > 0.2:
+            print(f'Find available: {i} -> {result}, copy to result dir.')
+            shutil.copy(pylib_file, output_dir / datetime.datetime.now().strftime('%Y%m%d-%H%M%S.py'))
 
 
 if __name__ == '__main__':
