@@ -1,4 +1,5 @@
 # 由于难以更改 config.xml 等一系列的配置文件，故直接再加一层脚本直接调用。
+import json
 import multiprocessing
 import os
 import shutil
@@ -110,20 +111,25 @@ def process(accounting: str, operation: Union[str, None]):
         return float(selected_line.split()[2])
 
     #
-    # def save_result():
-    #     print(f'Find available: {accounting} -> {result}, copy to result dir.')
-    #     output_dir = global_output_dir / identifier
-    #     output_dir.mkdir(parents=True, exist_ok=True)
-    #     shutil.copy(pylib_file, output_dir / f'{accounting}.py')
-    #     shutil.copy(config_file, output_dir / 'config.xml')
+    def save_result():
+        data = {
+            'accounting': accounting,
+            'operation': operation,
+            'sharpe': sharpe,
+        }
+        output_dir = global_output_dir / identifier
+        output_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy(pylib_file, output_dir / f'{accounting}.py')
+        shutil.copy(config_file, output_dir / 'config.xml')
+        with open(output_dir / 'meta.json', 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4)
 
     try:
         copy_bin()
         set_changeable_values()
         set_config()
-        execute()
-        # if abs(result := execute()) > 0.2:
-        # save_result()
+        sharpe = execute()
+        save_result()
     finally:
         shutil.rmtree(bin_dir, ignore_errors=True)
 
