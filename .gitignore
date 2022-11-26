@@ -210,3 +210,4 @@ cython_debug/
 
 # Project
 /output
+/output-best

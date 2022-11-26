@@ -1,4 +1,5 @@
 import json
+import platform
 from pathlib import Path
 
 import pandas as pd
@@ -48,7 +49,8 @@ def main():
             1 if sharpe > 0 else -1,  # alpha sign
             base_dir / 'output-best',  # output dir
         ))
-    process_batch(available)
+    if platform.platform() != 'win32':
+        process_batch(available)
 
 
 if __name__ == '__main__':
