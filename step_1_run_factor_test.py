@@ -70,7 +70,6 @@ def process(accounting: str, operation: Union[str, None]):
         alpha_element.attrib['id'] = pylib_file.stem
         config_element = alpha_element.xpath('./Config')[0]
         config_element.attrib['alphaname'] = pylib_file.stem
-        config_content = etree.tostring(tree)
 
         # 设置 operation
         operations_element = alpha_element.xpath('./Operations')[0]
@@ -80,6 +79,7 @@ def process(accounting: str, operation: Union[str, None]):
         else:
             operation_element.attrib['moduleId'] = operation
 
+        config_content = etree.tostring(tree)
         with open(config_file, 'wb') as f:
             f.write(config_content)
         shutil.copy(config_file, output_dir / 'config.xml')
