@@ -21,8 +21,9 @@ shutil.rmtree(global_output_dir, ignore_errors=True)
 lock = multiprocessing.Lock()
 
 
-def process(accounting: str, operation: Union[str, None]):
-    identifier = f'{accounting}' if operation is None else f'{accounting}-{operation}'
+def process(accounting: str, operation: Union[str, None], alpha_sign: float):
+    identifier = f'{operation}-[{alpha_sign}]'
+    identifier = identifier if operation is None else f'{identifier}-{operation}'
     bin_dir = global_temp_dir / f'{identifier}'
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'
@@ -42,7 +43,8 @@ def process(accounting: str, operation: Union[str, None]):
         with open(pylib_file, 'r', encoding='utf-8') as f:
             lines = f.readlines()
         changed_values = {
-            'changeable_value': repr(accounting),
+            'variable_accounting': repr(accounting),
+            'variable_alpha_sign': repr(alpha_sign),
         }
         lines = [l.rstrip('\n') for l in lines]
         end_marker = "# Auto edit, please don't change"
@@ -139,7 +141,7 @@ def main():
     accounting_list = list(df.loc[:, 0])
     operations: List[Tuple[str, Union[str, None]]]
     operations = [*'AlphaOpIndNeut AlphaOpIndNeut_new AlphaOpMktCapNeut AlphaOpCapSecNeut'.split(), None]
-    values = [(accounting, operation) for accounting in accounting_list for operation in operations]
+    values = [(accounting, operation, 1) for accounting in accounting_list for operation in operations]
     with multiprocessing.Pool(64) as pool:
         # noinspection PyTypeChecker
         pool.starmap(process, values)

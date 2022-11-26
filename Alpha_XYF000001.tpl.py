@@ -15,7 +15,8 @@ logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-changeable_value = 'RECP_TAX_RENDS'  # Auto edit, please don't change
+variable_accounting = 'RECP_TAX_RENDS'  # Auto edit, please don't change
+variable_alpha_sign = 1  # Auto edit, please don't change
 
 
 class PYMODEL(hfs_base_model):
@@ -40,7 +41,7 @@ class PYMODEL(hfs_base_model):
         ### 基本面数据库
         stkData = self.pydpi.load_pkl_data_file('Wind.AShareCashFlow.pkl')
         stkData = stkData[
-            ['STATEMENT_TYPE', 'S_INFO_WINDCODE', 'REPORT_PERIOD', 'ANN_DT', changeable_value]]  # 'CASH_RECP_SG_AND_RS'
+            ['STATEMENT_TYPE', 'S_INFO_WINDCODE', 'REPORT_PERIOD', 'ANN_DT', variable_accounting]]  # 'CASH_RECP_SG_AND_RS'
         stkData = stkData.dropna(axis=0, subset=['ANN_DT'])
         stkData['ANN_DT'] = stkData['ANN_DT'].astype('int')
         stkData = stkData[stkData['ANN_DT'] > 20040101]
@@ -52,7 +53,7 @@ class PYMODEL(hfs_base_model):
         stkData = stkData.sort_values(by=['S_INFO_WINDCODE', 'ANN_DT', 'REPORT_PERIOD'])
         # stkData=stkData.drop_duplicates(['S_INFO_WINDCODE','ANN_DT'],keep='last')
         stkData = stkData.reset_index()
-        stkData['variable'] = stkData[changeable_value]
+        stkData['variable'] = stkData[variable_accounting]
         print(stkData)
 
         ### 计算因子
@@ -62,7 +63,7 @@ class PYMODEL(hfs_base_model):
         # stkData['variable'] = stkData['growth']
         stkData['std'] = stkData.groupby('S_INFO_WINDCODE')['variable'].rolling(4, min_periods=4).std().values
         stkData['avg'] = stkData.groupby('S_INFO_WINDCODE')['variable'].rolling(4, min_periods=4).mean().values
-        stkData['factor_fdm'] = (stkData['variable'] - stkData['avg']) / stkData['std']
+        stkData['factor_fdm'] = variable_alpha_sign * (stkData['variable'] - stkData['avg']) / stkData['std']
         print(stkData)
 
         ### winsor
