@@ -16,6 +16,7 @@ bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
 global_temp_dir = base_dir / 'temp'
+global_temp_dir.mkdir(parents=True, exist_ok=True)
 global_output_dir = base_dir / 'output'
 shutil.rmtree(global_output_dir, ignore_errors=True)
 lock = multiprocessing.Lock()
@@ -27,8 +28,10 @@ def process(
         alpha_sign: float,
         output_dir=global_output_dir,
 ):
-    identifier = f'{operation}-[{alpha_sign}]'
-    identifier = identifier if operation is None else f'{identifier}-{operation}'
+    # 任何情况下都要确保这个标识符不重复，即同样的标识符一定对应着完全一样的项目
+    identifier = '-'.join((f'{accounting}',
+                           f'{"p" if alpha_sign > 0 else "n"}{abs(alpha_sign):.0f}',
+                           f'{"Empty" if operation is None else operation}'))
     bin_dir = global_temp_dir / f'{identifier}'
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'
@@ -113,15 +116,15 @@ def process(
         os.chdir(bin_dir)
         os.environ['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + f':{bin_dir}'
         run(f'./pybsim', f'{identifier}-step1')
-        stdout, _ = run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
-        selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
-        return float(selected_line.split()[2])
+        run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
+        # selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
+        # return float(selected_line.split()[2])
 
     def save_result():
         data = {
             'accounting': accounting,
             'operation': operation,
-            'sharpe': sharpe,
+            # 'sharpe': sharpe,
             'alpha-sign': alpha_sign,
         }
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -134,7 +137,8 @@ def process(
         copy_bin()
         set_changeable_values()
         set_config()
-        sharpe = execute()
+        execute()
+        # sharpe = execute()
         save_result()
     finally:
         shutil.rmtree(bin_dir, ignore_errors=True)
