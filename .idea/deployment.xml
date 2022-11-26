@@ -22,6 +22,16 @@
           <mappings>
             <mapping deploy="/home/student/work/alpha/pybsim" local="$PROJECT_DIR$" web="/" />
           </mappings>
+          <excludedPaths>
+            <excludedPath path="/home/student/work/alpha/pybsim/temp" />
+          </excludedPaths>
+        </serverdata>
+      </paths>
+      <paths name="liujie-ssh (3)">
+        <serverdata>
+          <mappings>
+            <mapping local="$PROJECT_DIR$" web="/" />
+          </mappings>
         </serverdata>
       </paths>
       <paths name="pl-deploy">

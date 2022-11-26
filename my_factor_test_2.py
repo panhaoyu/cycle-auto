@@ -15,14 +15,16 @@ data_dir = Path('/datas/student/AlphaTest')
 bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
-global_output_dir = base_dir / 'debug'
+global_temp_dir = base_dir / 'temp'
+global_output_dir = base_dir / 'output'
 shutil.rmtree(global_output_dir, ignore_errors=True)
 lock = multiprocessing.Lock()
 
 
 def process(accounting: str, operation: Union[str, None]):
     identifier = f'{accounting}' if operation is None else f'{accounting}-{operation}'
-    bin_dir = base_dir / 'bins' / f'{identifier}'
+    bin_dir = global_temp_dir / f'{identifier}'
+    bin_dir.mkdir(parents=True, exist_ok=True)
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'
     config_file = bin_dir / 'config.xml'
@@ -36,7 +38,6 @@ def process(accounting: str, operation: Union[str, None]):
         shutil.copytree(bin_template_dir, bin_dir)
         shutil.copy(pylib_template_file, pylib_file)
         pysim_file.chmod(0o755)
-        # 同时复制一份到debug文件夹
         shutil.copy(config_file, output_dir / 'config.xml')
         shutil.copy(pylib_file, output_dir / 'Alpha.py')
 
@@ -147,4 +148,7 @@ def main():
 
 if __name__ == '__main__':
     # process('CASH_RECP_SG_AND_RS', None)
-    main()
+    try:
+        main()
+    finally:
+        shutil.rmtree(global_temp_dir, ignore_errors=True)
