@@ -108,6 +108,7 @@ def process(accounting: str, operation: Union[str, None]):
         stdout, _ = run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
         selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
         return float(selected_line.split()[2])
+
     #
     # def save_result():
     #     print(f'Find available: {accounting} -> {result}, copy to result dir.')
@@ -120,6 +121,7 @@ def process(accounting: str, operation: Union[str, None]):
         copy_bin()
         set_changeable_values()
         set_config()
+        execute()
         # if abs(result := execute()) > 0.2:
         # save_result()
     finally:
