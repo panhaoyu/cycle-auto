@@ -16,9 +16,7 @@ bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
 global_temp_dir = base_dir / 'temp'
-global_temp_dir.mkdir(parents=True, exist_ok=True)
 global_output_dir = base_dir / 'output'
-shutil.rmtree(global_output_dir, ignore_errors=True)
 lock = multiprocessing.Lock()
 
 
@@ -117,14 +115,11 @@ def process(
         os.environ['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + f':{bin_dir}'
         run(f'./pybsim', f'{identifier}-step1')
         run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
-        # selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
-        # return float(selected_line.split()[2])
 
     def save_result():
         data = {
             'accounting': accounting,
             'operation': operation,
-            # 'sharpe': sharpe,
             'alpha-sign': alpha_sign,
         }
         output_dir.mkdir(parents=True, exist_ok=True)
@@ -138,8 +133,9 @@ def process(
         set_changeable_values()
         set_config()
         execute()
-        # sharpe = execute()
         save_result()
+    except:
+        pass
     finally:
         shutil.rmtree(bin_dir, ignore_errors=True)
 
@@ -162,6 +158,8 @@ def main():
 if __name__ == '__main__':
     # process('CASH_RECP_SG_AND_RS', None)
     try:
+        global_temp_dir.mkdir(parents=True, exist_ok=True)
+        shutil.rmtree(global_output_dir, ignore_errors=True)
         main()
     finally:
         shutil.rmtree(global_temp_dir, ignore_errors=True)

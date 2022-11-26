@@ -11,18 +11,28 @@ output_dir = base_dir / 'output'
 
 def get_dataframe() -> pd.DataFrame:
     data = []
-    keys = 'accounting operation sharpe'.split()
+    keys = 'accounting operation'.split()
+    print(list(output_dir.glob('*/*.json')))
     for i in output_dir.glob('*/meta.json'):
         with open(i, 'r', encoding='utf-8') as f:
             datum = json.load(f)
-        data.append(tuple(datum[i] for i in keys))
-    df = pd.DataFrame(data, columns=keys)
+        with open(next(i.parent.glob('*step2-stdout.txt')), 'r', encoding='utf-8') as f:
+            stdout = f.readlines()
+        accounting = datum['accounting']
+        selected_lines = [l for l in stdout if l.startswith(f'Alpha_XYF_{accounting}')]
+        if not selected_lines:
+            print(f'Process failed: {i.parent.stem}')
+            continue
+        sharpe = float(selected_lines[0].split()[2])
+        data.append((*(datum[i] for i in keys), sharpe))
+    df = pd.DataFrame(data, columns=[*keys, 'sharpe'])
     df.loc[df['operation'].apply(lambda j: j is None), 'operation'] = 'Empty'
     return df
 
 
 def main():
     df = get_dataframe()
+    df.to_excel(output_dir / 'data.xlsx')
     pt = df.pivot_table('sharpe', index=['accounting'], columns=['operation'])
     pt.to_excel(output_dir / 'sharpe.xlsx')
     available = []
