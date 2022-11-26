@@ -76,8 +76,8 @@ def process(accounting: str, operation: Union[str, None]):
         popen.wait()
         with lock:
             print('-' * 80), print(name)
-            print('STDOUT:'), print(stdout)
-            print('STDERR:'), print(stderr)
+            stdout and (print('STDOUT:'), print(stdout))
+            stderr and (print('STDERR:'), print(stderr))
             print('-' * 80)
         return stdout, stderr
 
