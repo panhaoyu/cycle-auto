@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import shutil
 from pathlib import Path
+from typing import Union, List, Tuple
 
 import pandas as pd
 from lxml import etree
@@ -14,15 +15,14 @@ pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
 
 
-def process(accounting: str, operation: str):
-    bin_dir = base_dir / f'bin-{accounting}-{operation}'
+def process(accounting: str, operation: Union[str, None]):
+    identifier = f'{accounting}' if operation is None else f'{accounting}-{operation}'
+    bin_dir = base_dir / f'bin-{identifier}'
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'
     config_file = bin_dir / 'config.xml'
     my_factor_test_file = bin_dir / 'my_factor_test.py'
     pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
-    output_dir = base_dir / 'output'
-    output_dir.mkdir(parents=True, exist_ok=True)
 
     def copy_bin():
         shutil.rmtree(bin_dir, ignore_errors=True)
@@ -62,6 +62,7 @@ def process(accounting: str, operation: str):
         element = element.xpath('./Config')[0]
         element.attrib['alphaname'] = pylib_file.stem
         config_content = etree.tostring(tree)
+
         with open(config_file, 'wb') as f:
             f.write(config_content)
 
@@ -75,24 +76,34 @@ def process(accounting: str, operation: str):
         selected_line = [l for l in command_results if l.startswith(pylib_file.stem)][0]
         return float(selected_line.split()[2])
 
+    def save_result():
+        print(f'Find available: {accounting} -> {result}, copy to result dir.')
+        output_dir = base_dir / 'output' / identifier
+        output_dir.mkdir(parents=True, exist_ok=True)
+        shutil.copy(pylib_file, output_dir / f'{accounting}.py')
+        shutil.copy(config_file, output_dir / 'config.xml')
+
     try:
         copy_bin()
         set_changeable_values()
         set_config()
-        if (result := execute()) > 0.2:
-            print(f'Find available: {accounting} -> {result}, copy to result dir.')
-            shutil.copy(pylib_file, output_dir / f'{accounting}.py')
+        if abs(result := execute()) > 0.2:
+            save_result()
     finally:
         shutil.rmtree(bin_dir)
 
 
 def main():
     df = pd.read_excel(excel_file, header=None)
-    values = list(df.loc[:, 0])
-    with multiprocessing.Pool(10) as pool:
-        pool.map(process, values)
+    accounting_list = list(df.loc[:, 0])
+    operations: List[Tuple[str, Union[str, None]]]
+    operations = [*'AlphaOpIndNeut AlphaOpIndNeut_new AlphaOpMktCapNeut AlphaOpCapSecNeut'.split(), None]
+    values = [(accounting, operation) for accounting in accounting_list for operation in operations]
+    with multiprocessing.Pool(64) as pool:
+        # noinspection PyTypeChecker
+        pool.starmap(process, values)
 
 
 if __name__ == '__main__':
-    process('CASH_RECP_SG_AND_RS')
-    # main()
+    # process('CASH_RECP_SG_AND_RS', None)
+    main()
