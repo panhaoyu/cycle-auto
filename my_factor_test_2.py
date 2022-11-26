@@ -15,24 +15,30 @@ bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
 global_output_dir = base_dir / 'output'
-shutil.rmtree(global_output_dir)
+global_debug_dir = base_dir / 'debug'
+shutil.rmtree(global_output_dir, ignore_errors=True), shutil.rmtree(global_debug_dir, ignore_errors=True)
 lock = multiprocessing.Lock()
 
 
 def process(accounting: str, operation: Union[str, None]):
     identifier = f'{accounting}' if operation is None else f'{accounting}-{operation}'
-    bin_dir = base_dir / f'bin-{identifier}'
+    bin_dir = base_dir / 'bins' / f'{identifier}'
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'
     config_file = bin_dir / 'config.xml'
     my_factor_test_file = bin_dir / 'my_factor_test.py'
     pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
+    debug_dir = global_debug_dir / identifier
+    debug_dir.mkdir(parents=True, exist_ok=True)
 
     def copy_bin():
         shutil.rmtree(bin_dir, ignore_errors=True)
         shutil.copytree(bin_template_dir, bin_dir)
         shutil.copy(pylib_template_file, pylib_file)
         pysim_file.chmod(0o755)
+        # 同时复制一份到debug文件夹
+        shutil.copy(config_file, debug_dir / 'config.xml')
+        shutil.copy(pylib_file, debug_dir / 'Alpha.py')
 
     def set_changeable_values():
         with open(pylib_file, 'r', encoding='utf-8') as f:
@@ -59,13 +65,21 @@ def process(accounting: str, operation: Union[str, None]):
         tree = etree.fromstring(config_content)
 
         # 设置 alphacode 的路径
-        element = tree.xpath('//Portfolio')[0]
-        element.attrib['alphacode'] = str(bin_dir)
-        element = element.xpath('./Alpha')[0]
-        element.attrib['id'] = pylib_file.stem
-        element = element.xpath('./Config')[0]
-        element.attrib['alphaname'] = pylib_file.stem
+        portfolio_element = tree.xpath('//Portfolio')[0]
+        portfolio_element.attrib['alphacode'] = str(bin_dir)
+        alpha_element = portfolio_element.xpath('./Alpha')[0]
+        alpha_element.attrib['id'] = pylib_file.stem
+        config_element = alpha_element.xpath('./Config')[0]
+        config_element.attrib['alphaname'] = pylib_file.stem
         config_content = etree.tostring(tree)
+
+        # 设置 operation
+        operations_element = alpha_element.xpath('./Operations')[0]
+        operation_element = operations_element.xpath('./Operation')[0]
+        if operation is None:
+            operations_element.remove(operation_element)
+        else:
+            operation_element.attrib['moduleId'] = operation
 
         with open(config_file, 'wb') as f:
             f.write(config_content)
@@ -80,6 +94,10 @@ def process(accounting: str, operation: Union[str, None]):
             stdout and (print('STDOUT:'), print(stdout))
             stderr and (print('STDERR:'), print(stderr))
             print('-' * 80)
+        with open(debug_dir / f'{name}-stdout.txt', 'w', encoding='utf-8') as f:
+            f.write(stdout)
+        with open(debug_dir / f'{name}-stderr.txt', 'w', encoding='utf-8') as f:
+            f.write(stderr)
         return stdout, stderr
 
     def execute():
@@ -87,8 +105,8 @@ def process(accounting: str, operation: Union[str, None]):
         print(f'Executing {identifier} ...')
         os.chdir(bin_dir)
         os.environ['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + f':{bin_dir}'
-        run(f'./pybsim', f'Executing result of {identifier}')
-        stdout, stderr = run(['python3', my_factor_test_file, pnl_file], f'Calculating result of {identifier}')
+        run(f'./pybsim', f'{identifier}-step1')
+        stdout, _ = run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
         selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
         return float(selected_line.split()[2])
 
@@ -106,7 +124,7 @@ def process(accounting: str, operation: Union[str, None]):
         if abs(result := execute()) > 0.2:
             save_result()
     finally:
-        shutil.rmtree(bin_dir)
+        shutil.rmtree(bin_dir, ignore_errors=True)
 
 
 def main():
