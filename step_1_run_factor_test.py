@@ -21,7 +21,12 @@ shutil.rmtree(global_output_dir, ignore_errors=True)
 lock = multiprocessing.Lock()
 
 
-def process(accounting: str, operation: Union[str, None], alpha_sign: float):
+def process(
+        accounting: str,
+        operation: Union[str, None],
+        alpha_sign: float,
+        output_dir=global_output_dir,
+):
     identifier = f'{operation}-[{alpha_sign}]'
     identifier = identifier if operation is None else f'{identifier}-{operation}'
     bin_dir = global_temp_dir / f'{identifier}'
@@ -30,7 +35,7 @@ def process(accounting: str, operation: Union[str, None], alpha_sign: float):
     config_file = bin_dir / 'config.xml'
     my_factor_test_file = bin_dir / 'my_factor_test.py'
     pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
-    output_dir = global_output_dir / identifier
+    output_dir = output_dir / identifier
     output_dir.mkdir(parents=True, exist_ok=True)
 
     def copy_bin():
@@ -112,14 +117,13 @@ def process(accounting: str, operation: Union[str, None], alpha_sign: float):
         selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
         return float(selected_line.split()[2])
 
-    #
     def save_result():
         data = {
             'accounting': accounting,
             'operation': operation,
             'sharpe': sharpe,
+            'alpha-sign': alpha_sign,
         }
-        output_dir = global_output_dir / identifier
         output_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy(pylib_file, output_dir / f'{accounting}.py')
         shutil.copy(config_file, output_dir / 'config.xml')
