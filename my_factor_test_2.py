@@ -3,6 +3,7 @@ import multiprocessing
 import os
 import shutil
 from pathlib import Path
+from subprocess import Popen, PIPE
 from typing import Union, List, Tuple
 
 import pandas as pd
@@ -13,6 +14,8 @@ data_dir = Path('/datas/student/AlphaTest')
 bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
+
+lock = multiprocessing.Lock()
 
 
 def process(accounting: str, operation: Union[str, None]):
@@ -66,14 +69,26 @@ def process(accounting: str, operation: Union[str, None]):
         with open(config_file, 'wb') as f:
             f.write(config_content)
 
+    def run(args: Union[str, List[str]], name: str):
+        popen = Popen(args, stdout=PIPE, stderr=PIPE)
+        stdout, stderr = popen.communicate()
+        stdout, stderr = stdout.decode(), stderr.decode()
+        popen.wait()
+        with lock:
+            print('-' * 80), print(name)
+            print('STDOUT:'), print(stdout)
+            print('STDERR:'), print(stderr)
+            print('-' * 80)
+        return stdout, stderr
+
     def execute():
         """执行原有的 my_factor_test 脚本，并获取结果"""
-        print('Executing ...')
+        print(f'Executing {identifier} ...')
         os.chdir(bin_dir)
-        os.popen(f'PYTHONPATH=$PYTHONPATH:{bin_dir} ./pybsim').read()
-        print('Executed.')
-        command_results = os.popen(f'python3 {my_factor_test_file} {pnl_file}').readlines()
-        selected_line = [l for l in command_results if l.startswith(pylib_file.stem)][0]
+        os.environ['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + f':{bin_dir}'
+        run(f'./pybsim', f'Executing result of {identifier}')
+        stdout, stderr = run(['python3', my_factor_test_file, pnl_file], f'Calculating result of {identifier}')
+        selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
         return float(selected_line.split()[2])
 
     def save_result():
