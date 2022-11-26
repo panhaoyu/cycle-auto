@@ -78,8 +78,10 @@ def process(value: str):
             print(f'Find available: {value} -> {result}, copy to result dir.')
             shutil.copy(pylib_file, output_dir / f'{value}.py')
 
-    all_for_one_value(value)
-    shutil.rmtree(bin_dir)
+    try:
+        all_for_one_value(value)
+    finally:
+        shutil.rmtree(bin_dir)
 
 
 def main():
@@ -90,4 +92,5 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    process('CASH_RECP_SG_AND_RS')
+    # main()
