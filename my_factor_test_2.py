@@ -14,9 +14,8 @@ data_dir = Path('/datas/student/AlphaTest')
 bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
-global_output_dir = base_dir / 'output'
-global_debug_dir = base_dir / 'debug'
-shutil.rmtree(global_output_dir, ignore_errors=True), shutil.rmtree(global_debug_dir, ignore_errors=True)
+global_output_dir = base_dir / 'debug'
+shutil.rmtree(global_output_dir, ignore_errors=True)
 lock = multiprocessing.Lock()
 
 
@@ -28,8 +27,8 @@ def process(accounting: str, operation: Union[str, None]):
     config_file = bin_dir / 'config.xml'
     my_factor_test_file = bin_dir / 'my_factor_test.py'
     pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
-    debug_dir = global_debug_dir / identifier
-    debug_dir.mkdir(parents=True, exist_ok=True)
+    output_dir = global_output_dir / identifier
+    output_dir.mkdir(parents=True, exist_ok=True)
 
     def copy_bin():
         shutil.rmtree(bin_dir, ignore_errors=True)
@@ -37,8 +36,8 @@ def process(accounting: str, operation: Union[str, None]):
         shutil.copy(pylib_template_file, pylib_file)
         pysim_file.chmod(0o755)
         # 同时复制一份到debug文件夹
-        shutil.copy(config_file, debug_dir / 'config.xml')
-        shutil.copy(pylib_file, debug_dir / 'Alpha.py')
+        shutil.copy(config_file, output_dir / 'config.xml')
+        shutil.copy(pylib_file, output_dir / 'Alpha.py')
 
     def set_changeable_values():
         with open(pylib_file, 'r', encoding='utf-8') as f:
@@ -94,9 +93,9 @@ def process(accounting: str, operation: Union[str, None]):
             stdout and (print('STDOUT:'), print(stdout))
             stderr and (print('STDERR:'), print(stderr))
             print('-' * 80)
-        with open(debug_dir / f'{name}-stdout.txt', 'w', encoding='utf-8') as f:
+        with open(output_dir / f'{name}-stdout.txt', 'w', encoding='utf-8') as f:
             f.write(stdout)
-        with open(debug_dir / f'{name}-stderr.txt', 'w', encoding='utf-8') as f:
+        with open(output_dir / f'{name}-stderr.txt', 'w', encoding='utf-8') as f:
             f.write(stderr)
         return stdout, stderr
 
@@ -109,20 +108,20 @@ def process(accounting: str, operation: Union[str, None]):
         stdout, _ = run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
         selected_line = [l for l in stdout.splitlines() if l.startswith(pylib_file.stem)][0]
         return float(selected_line.split()[2])
-
-    def save_result():
-        print(f'Find available: {accounting} -> {result}, copy to result dir.')
-        output_dir = global_output_dir / identifier
-        output_dir.mkdir(parents=True, exist_ok=True)
-        shutil.copy(pylib_file, output_dir / f'{accounting}.py')
-        shutil.copy(config_file, output_dir / 'config.xml')
+    #
+    # def save_result():
+    #     print(f'Find available: {accounting} -> {result}, copy to result dir.')
+    #     output_dir = global_output_dir / identifier
+    #     output_dir.mkdir(parents=True, exist_ok=True)
+    #     shutil.copy(pylib_file, output_dir / f'{accounting}.py')
+    #     shutil.copy(config_file, output_dir / 'config.xml')
 
     try:
         copy_bin()
         set_changeable_values()
         set_config()
-        if abs(result := execute()) > 0.2:
-            save_result()
+        # if abs(result := execute()) > 0.2:
+        # save_result()
     finally:
         shutil.rmtree(bin_dir, ignore_errors=True)
 
