@@ -140,15 +140,19 @@ def process(
         shutil.rmtree(bin_dir, ignore_errors=True)
 
 
+def process_batch(values):
+    with multiprocessing.Pool(64) as pool:
+        # noinspection PyTypeChecker
+        pool.starmap(process, values)
+
+
 def main():
     df = pd.read_excel(excel_file, header=None)
     accounting_list = list(df.loc[:, 0])
     operations: List[Tuple[str, Union[str, None]]]
     operations = [*'AlphaOpIndNeut AlphaOpIndNeut_new AlphaOpMktCapNeut AlphaOpCapSecNeut'.split(), None]
     values = [(accounting, operation, 1) for accounting in accounting_list for operation in operations]
-    with multiprocessing.Pool(64) as pool:
-        # noinspection PyTypeChecker
-        pool.starmap(process, values)
+    process_batch(values)
 
 
 if __name__ == '__main__':
