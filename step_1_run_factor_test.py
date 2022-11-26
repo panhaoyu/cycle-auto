@@ -82,7 +82,7 @@ def process(
         # 设置 operation
         operations_element = alpha_element.xpath('./Operations')[0]
         operation_element = operations_element.xpath('./Operation')[0]
-        if operation == 'Empty':
+        if operation is None:
             operations_element.remove(operation_element)
         else:
             operation_element.attrib['moduleId'] = operation

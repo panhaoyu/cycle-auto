@@ -1,5 +1,6 @@
 import json
 import platform
+import shutil
 from pathlib import Path
 
 import pandas as pd
@@ -13,7 +14,6 @@ output_dir = base_dir / 'output'
 def get_dataframe() -> pd.DataFrame:
     data = []
     keys = 'accounting operation'.split()
-    print(list(output_dir.glob('*/*.json')))
     for i in output_dir.glob('*/meta.json'):
         with open(i, 'r', encoding='utf-8') as f:
             datum = json.load(f)
@@ -37,6 +37,8 @@ def main():
     pt = df.pivot_table('sharpe', index=['accounting'], columns=['operation'])
     pt.to_excel(output_dir / 'sharpe.xlsx')
     available = []
+    new_output_dir = base_dir / 'output-best'
+    shutil.rmtree(new_output_dir)
     for accounting, operations in pt.iterrows():
         max_value = max(abs(operations))
         selected = [(k, v) for k, v in operations.to_dict().items() if abs(v) == max_value and abs(v) > 0.75]
@@ -45,9 +47,9 @@ def main():
         operation, sharpe = selected[0]
         available.append((
             accounting,
-            operation,
+            None if operation == 'Empty' else operation,
             1 if sharpe > 0 else -1,  # alpha sign
-            base_dir / 'output-best',  # output dir
+            new_output_dir,  # output dir
         ))
     if platform.platform() != 'win32':
         process_batch(available)
