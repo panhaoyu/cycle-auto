@@ -24,7 +24,6 @@ lock = multiprocessing.Lock()
 def process(accounting: str, operation: Union[str, None]):
     identifier = f'{accounting}' if operation is None else f'{accounting}-{operation}'
     bin_dir = global_temp_dir / f'{identifier}'
-    bin_dir.mkdir(parents=True, exist_ok=True)
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'
     config_file = bin_dir / 'config.xml'
@@ -38,8 +37,6 @@ def process(accounting: str, operation: Union[str, None]):
         shutil.copytree(bin_template_dir, bin_dir)
         shutil.copy(pylib_template_file, pylib_file)
         pysim_file.chmod(0o755)
-        shutil.copy(config_file, output_dir / 'config.xml')
-        shutil.copy(pylib_file, output_dir / 'Alpha.py')
 
     def set_changeable_values():
         with open(pylib_file, 'r', encoding='utf-8') as f:
@@ -59,6 +56,7 @@ def process(accounting: str, operation: Union[str, None]):
         lines = [f'{l}\n' for l in lines]
         with open(pylib_file, 'w', encoding='utf-8') as f:
             f.writelines(lines)
+        shutil.copy(pylib_file, output_dir / 'Alpha.py')
 
     def set_config():
         with open(config_file, 'rb') as f:
@@ -84,6 +82,7 @@ def process(accounting: str, operation: Union[str, None]):
 
         with open(config_file, 'wb') as f:
             f.write(config_content)
+        shutil.copy(config_file, output_dir / 'config.xml')
 
     def run(args: Union[str, List[str]], name: str):
         popen = Popen(args, stdout=PIPE, stderr=PIPE)
