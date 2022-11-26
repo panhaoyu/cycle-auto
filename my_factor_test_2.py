@@ -14,7 +14,8 @@ data_dir = Path('/datas/student/AlphaTest')
 bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
-
+global_output_dir = base_dir / 'output'
+shutil.rmtree(global_output_dir)
 lock = multiprocessing.Lock()
 
 
@@ -93,7 +94,7 @@ def process(accounting: str, operation: Union[str, None]):
 
     def save_result():
         print(f'Find available: {accounting} -> {result}, copy to result dir.')
-        output_dir = base_dir / 'output' / identifier
+        output_dir = global_output_dir / identifier
         output_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy(pylib_file, output_dir / f'{accounting}.py')
         shutil.copy(config_file, output_dir / 'config.xml')
