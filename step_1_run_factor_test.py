@@ -88,6 +88,10 @@ def process(
         else:
             operation_element.attrib['moduleId'] = operation
 
+        # 设置 dump alpha
+        stats_element = portfolio_element.xpath('./Stats')[0]
+        stats_element.attrib['moduleId'] = dump_alpha
+
         config_content = etree.tostring(tree)
         with open(config_file, 'wb') as f:
             f.write(config_content)
