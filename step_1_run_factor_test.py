@@ -25,7 +25,7 @@ def process(
         operation: Union[str, None],
         alpha_sign: float = 1,
         output_dir=global_output_dir,
-        dump_alpha='StatsBacktest',  # 在后面生成csv的时候要改成StatsDumpAlpha
+        dump_alpha='StatsBacktest',  # 在后面生成csv的时候要改成 StatsDumpAlpha
 ):
     operation = None if operation == 'Empty' else operation
     # 任何情况下都要确保这个标识符不重复，即同样的标识符一定对应着完全一样的项目
@@ -127,7 +127,8 @@ def process(
         os.chdir(bin_dir)
         os.environ['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + f':{bin_dir}'
         run(f'./pybsim', f'{identifier}-step1')
-        run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
+        if dump_alpha != 'StatsDumpAlpha':  # dump alpha 的时候不会生成 pnl 文件，因此第二步无法运行
+            run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
 
     def save_result():
         data = {

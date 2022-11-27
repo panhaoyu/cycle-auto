@@ -5,10 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from step_1_run_factor_test import process_batch
+from step_1_run_factor_test import process_batch, base_dir, global_output_dir as output_dir
 
-base_dir = Path(__file__).parent
-output_dir = base_dir / 'output'
 output_best_dir = base_dir / 'output-best'
 
 
@@ -35,7 +33,7 @@ def get_dataframe(directory: Path = output_dir) -> pd.DataFrame:
             continue
         sharpe = float(selected_lines[0].split()[2])
         data.append((*(datum[i] for i in keys), sharpe))
-    df = pd.DataFrame(data, columns=[*keys, 'sharpe'])
+    df = pd.DataFrame(data, columns=[*(k.lower().replace('-', '_') for k in keys), 'sharpe'])
     df.loc[df['operation'].apply(lambda j: j is None), 'operation'] = 'Empty'
     return df
 
