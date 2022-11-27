@@ -25,7 +25,7 @@ def main():
                          str(global_dump_alpha_dir / identifier / 'dumplAlphas.csv'),
                          str(output_dir),
                      ], 'step-4-generate-images', output_dir))
-    with multiprocessing.Pool(64) as pool:
+    with multiprocessing.Pool(4) as pool:
         pool.starmap(run_command, data)
 
 
