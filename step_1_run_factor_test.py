@@ -23,8 +23,9 @@ lock = multiprocessing.Lock()
 def process(
         accounting: str,
         operation: Union[str, None],
-        alpha_sign: float,
+        alpha_sign: float = 1,
         output_dir=global_output_dir,
+        dump_alpha='StatsBacktest',  # 在后面生成csv的时候要改成StatsDumpAlpha
 ):
     # 任何情况下都要确保这个标识符不重复，即同样的标识符一定对应着完全一样的项目
     identifier = '-'.join((f'{accounting}',
@@ -140,10 +141,15 @@ def process(
         shutil.rmtree(bin_dir, ignore_errors=True)
 
 
+def process_wrapper(values):
+    """参数一点点变多了，使用此函数进行包装，可以实现多进程版本的kwargs参数字典"""
+    process(**values)
+
+
 def process_batch(values):
     with multiprocessing.Pool(64) as pool:
         # noinspection PyTypeChecker
-        pool.starmap(process, values)
+        pool.starmap(process_wrapper, values)
 
 
 def main():
@@ -151,7 +157,8 @@ def main():
     accounting_list = list(df.loc[:, 0])
     operations: List[Tuple[str, Union[str, None]]]
     operations = [*'AlphaOpIndNeut AlphaOpIndNeut_new AlphaOpMktCapNeut AlphaOpCapSecNeut'.split(), None]
-    values = [(accounting, operation, 1) for accounting in accounting_list for operation in operations]
+    values = [{'accounting': accounting, 'operation': operation}
+              for accounting in accounting_list for operation in operations]
     process_batch(values)
 
 

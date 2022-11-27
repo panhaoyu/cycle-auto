@@ -45,12 +45,12 @@ def main():
         if not selected:
             continue
         operation, sharpe = selected[0]
-        available.append((
-            accounting,
-            None if operation == 'Empty' else operation,
-            1 if sharpe > 0 else -1,  # alpha sign
-            new_output_dir,  # output dir
-        ))
+        available.append({
+            'accounting': accounting,
+            'operation': None if operation == 'Empty' else operation,
+            'alpha_sign': 1 if sharpe > 0 else -1,
+            'output_dir': new_output_dir,
+        })
     if platform.platform() != 'win32':
         process_batch(available)
 
