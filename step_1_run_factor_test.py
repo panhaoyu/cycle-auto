@@ -37,6 +37,13 @@ def run_command(args: Union[str, List[str]], name: str, output_dir):
     return stdout, stderr
 
 
+def get_identifier(accounting, operation, alpha_sign, dump_alpha):
+    return '-'.join((f'{accounting}',
+                     f'{"p" if alpha_sign > 0 else "n"}{abs(alpha_sign):.0f}',
+                     f'{"Empty" if operation is None else operation}',
+                     dump_alpha))
+
+
 def process(
         accounting: str,
         operation: Union[str, None],
@@ -46,10 +53,7 @@ def process(
 ):
     operation = None if operation == 'Empty' else operation
     # 任何情况下都要确保这个标识符不重复，即同样的标识符一定对应着完全一样的项目
-    identifier = '-'.join((f'{accounting}',
-                           f'{"p" if alpha_sign > 0 else "n"}{abs(alpha_sign):.0f}',
-                           f'{"Empty" if operation is None else operation}',
-                           dump_alpha))
+    identifier = get_identifier(accounting, operation, alpha_sign, dump_alpha)
     bin_dir = global_temp_dir / f'{identifier}'
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'

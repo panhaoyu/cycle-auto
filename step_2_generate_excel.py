@@ -27,13 +27,19 @@ def get_dataframe(directory: Path = output_dir) -> pd.DataFrame:
         with open(next(i.parent.glob('*step2-stdout.txt')), 'r', encoding='utf-8') as f:
             stdout = f.readlines()
         accounting = datum['accounting']
-        selected_lines = [l for l in stdout if l.startswith(f'Alpha_XYF_{accounting}')]
-        if not selected_lines:
-            print(f'Process failed: {i.parent.stem}')
-            continue
-        sharpe = float(selected_lines[0].split()[2])
-        data.append((*(datum[i] for i in keys), sharpe))
-    df = pd.DataFrame(data, columns=[*(k.lower().replace('-', '_') for k in keys), 'sharpe'])
+        if datum['dump-alpha'] != 'StatsDumpAlpha':
+            selected_lines = [l for l in stdout if l.startswith(f'Alpha_XYF_{accounting}')]
+            if not selected_lines:
+                print(f'Process failed: {i.parent.stem}')
+                continue
+            sharpe = float(selected_lines[0].split()[2])
+            data.append((*(datum[i] for i in keys), sharpe))
+        else:
+            data.append(tuple(datum[i] for i in keys))
+    columns = list(k.lower().replace('-', '_') for k in keys)
+    if data and datum['dump-alpha'] != 'StatsDumpAlpha':
+        columns.append('sharpe')
+    df = pd.DataFrame(data, columns=columns)
     df.loc[df['operation'].apply(lambda j: j is None), 'operation'] = 'Empty'
     return df
 
