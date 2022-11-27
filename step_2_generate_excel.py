@@ -9,12 +9,21 @@ from step_1_run_factor_test import process_batch
 
 base_dir = Path(__file__).parent
 output_dir = base_dir / 'output'
+output_best_dir = base_dir / 'output-best'
 
 
 def get_dataframe(directory: Path = output_dir) -> pd.DataFrame:
+    """将一个文件夹下的所有结果整理为 DataFrame ，以方便进行筛选和分析。
+
+    Args:
+        directory: output 或者 output-best 等输入结果的保存文件夹。
+
+    Returns:
+        从 meta.json 中读取得到的结果。
+    """
     data = []
     keys = 'accounting operation'.split()
-    for i in output_dir.glob('*/meta.json'):
+    for i in directory.glob('*/meta.json'):
         with open(i, 'r', encoding='utf-8') as f:
             datum = json.load(f)
         with open(next(i.parent.glob('*step2-stdout.txt')), 'r', encoding='utf-8') as f:
@@ -37,8 +46,7 @@ def main():
     pt = df.pivot_table('sharpe', index=['accounting'], columns=['operation'])
     pt.to_excel(output_dir / 'sharpe.xlsx')
     available = []
-    new_output_dir = base_dir / 'output-best'
-    shutil.rmtree(new_output_dir)
+    shutil.rmtree(output_best_dir)
     for accounting, operations in pt.iterrows():
         max_value = max(abs(operations))
         selected = [(k, v) for k, v in operations.to_dict().items() if abs(v) == max_value and abs(v) > 0.75]
@@ -49,7 +57,7 @@ def main():
             'accounting': accounting,
             'operation': None if operation == 'Empty' else operation,
             'alpha_sign': 1 if sharpe > 0 else -1,
-            'output_dir': new_output_dir,
+            'output_dir': output_best_dir,
         })
     if platform.platform() != 'win32':
         process_batch(available)
