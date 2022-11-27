@@ -11,7 +11,7 @@ base_dir = Path(__file__).parent
 output_dir = base_dir / 'output'
 
 
-def get_dataframe() -> pd.DataFrame:
+def get_dataframe(directory: Path = output_dir) -> pd.DataFrame:
     data = []
     keys = 'accounting operation'.split()
     for i in output_dir.glob('*/meta.json'):

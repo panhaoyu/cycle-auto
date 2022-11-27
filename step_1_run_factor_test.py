@@ -11,7 +11,7 @@ import pandas as pd
 from lxml import etree
 
 base_dir = Path(__file__).parent
-data_dir = Path('/datas/student/AlphaTest')
+global_dump_alpha_dir = Path('/datas/student/AlphaTest-Auto')
 bin_template_dir = base_dir / 'bin.tpl'
 pylib_template_file = base_dir / 'Alpha_XYF000001.tpl.py'
 excel_file = base_dir / 'variable.xlsx'
@@ -30,15 +30,17 @@ def process(
     # 任何情况下都要确保这个标识符不重复，即同样的标识符一定对应着完全一样的项目
     identifier = '-'.join((f'{accounting}',
                            f'{"p" if alpha_sign > 0 else "n"}{abs(alpha_sign):.0f}',
-                           f'{"Empty" if operation is None else operation}'))
+                           f'{"Empty" if operation is None else operation}',
+                           dump_alpha))
     bin_dir = global_temp_dir / f'{identifier}'
     pylib_file = bin_dir / f'Alpha_XYF_{accounting}.py'
     pysim_file = bin_dir / 'pybsim'
     config_file = bin_dir / 'config.xml'
     my_factor_test_file = bin_dir / 'my_factor_test.py'
-    pnl_file = data_dir / f'{pylib_file.stem}.pnl.txt'
-    output_dir = output_dir / identifier
-    output_dir.mkdir(parents=True, exist_ok=True)
+    (dump_alpha_dir := global_dump_alpha_dir / identifier).mkdir(parents=True, exist_ok=True)
+    pnl_file = dump_alpha_dir / f'{pylib_file.stem}.pnl.txt'
+    dump_alphas_csv_file = dump_alpha_dir / 'dumplAlphas.csv'
+    (output_dir := output_dir / identifier).mkdir(parents=True, exist_ok=True)
 
     def copy_bin():
         shutil.rmtree(bin_dir, ignore_errors=True)
@@ -92,6 +94,11 @@ def process(
         stats_element = portfolio_element.xpath('./Stats')[0]
         stats_element.attrib['moduleId'] = dump_alpha
 
+        # 设置 dump alpha directory
+        tree.xpath('//Modules/Module[@id="StatsDumpAlpha"]')[0].attrib['dumpAlphaDir'] = str(dump_alpha_dir)
+        tree.xpath('//Modules/Module[@id="StatsDumpAlpha"]')[0].attrib['StatsBacktest'] = str(dump_alpha_dir)
+        alpha_element.attrib['dumpAlphaDir'] = str(dump_alpha_dir)
+
         config_content = etree.tostring(tree)
         with open(config_file, 'wb') as f:
             f.write(config_content)
@@ -130,6 +137,8 @@ def process(
         output_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy(pylib_file, output_dir / f'{accounting}.py')
         shutil.copy(config_file, output_dir / 'config.xml')
+        # 由于这个文件过大，不去拷贝它
+        # dump_alphas_csv_file.exists() and shutil.copy(dump_alphas_csv_file, output_dir / 'dumplAlpha.csv')
         with open(output_dir / 'meta.json', 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4)
 
