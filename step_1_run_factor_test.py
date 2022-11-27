@@ -20,6 +20,23 @@ global_output_dir = base_dir / 'output'
 lock = multiprocessing.Lock()
 
 
+def run_command(args: Union[str, List[str]], name: str, output_dir):
+    popen = Popen(args, stdout=PIPE, stderr=PIPE)
+    stdout, stderr = popen.communicate()
+    stdout, stderr = stdout.decode(), stderr.decode()
+    popen.wait()
+    with lock:
+        print('-' * 80), print(name)
+        stdout and (print('STDOUT:'), print(stdout))
+        stderr and (print('STDERR:'), print(stderr))
+        print('-' * 80)
+    with open(output_dir / f'{name}-stdout.txt', 'a', encoding='utf-8') as f:
+        f.write(stdout)
+    with open(output_dir / f'{name}-stderr.txt', 'a', encoding='utf-8') as f:
+        f.write(stderr)
+    return stdout, stderr
+
+
 def process(
         accounting: str,
         operation: Union[str, None],
@@ -105,30 +122,14 @@ def process(
             f.write(config_content)
         shutil.copy(config_file, output_dir / 'config.xml')
 
-    def run(args: Union[str, List[str]], name: str):
-        popen = Popen(args, stdout=PIPE, stderr=PIPE)
-        stdout, stderr = popen.communicate()
-        stdout, stderr = stdout.decode(), stderr.decode()
-        popen.wait()
-        with lock:
-            print('-' * 80), print(name)
-            stdout and (print('STDOUT:'), print(stdout))
-            stderr and (print('STDERR:'), print(stderr))
-            print('-' * 80)
-        with open(output_dir / f'{name}-stdout.txt', 'w', encoding='utf-8') as f:
-            f.write(stdout)
-        with open(output_dir / f'{name}-stderr.txt', 'w', encoding='utf-8') as f:
-            f.write(stderr)
-        return stdout, stderr
-
     def execute():
         """执行原有的 my_factor_test 脚本，并获取结果"""
         print(f'Executing {identifier} ...')
         os.chdir(bin_dir)
         os.environ['PYTHONPATH'] = os.environ.get('PYTHONPATH', '') + f':{bin_dir}'
-        run(f'./pybsim', f'{identifier}-step1')
+        run_command(f'./pybsim', f'{identifier}-step1', output_dir)
         if dump_alpha != 'StatsDumpAlpha':  # dump alpha 的时候不会生成 pnl 文件，因此第二步无法运行
-            run(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2')
+            run_command(['python3', my_factor_test_file, pnl_file], f'{identifier}-step2', output_dir)
 
     def save_result():
         data = {
