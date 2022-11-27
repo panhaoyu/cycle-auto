@@ -96,7 +96,7 @@ def process(
 
         # 设置 dump alpha directory
         tree.xpath('//Modules/Module[@id="StatsDumpAlpha"]')[0].attrib['dumpAlphaDir'] = str(dump_alpha_dir)
-        tree.xpath('//Modules/Module[@id="StatsDumpAlpha"]')[0].attrib['StatsBacktest'] = str(dump_alpha_dir)
+        tree.xpath('//Modules/Module[@id="StatsBacktest"]')[0].attrib['dumpAlphaDir'] = str(dump_alpha_dir)
         alpha_element.attrib['dumpAlphaDir'] = str(dump_alpha_dir)
 
         config_content = etree.tostring(tree)
@@ -162,14 +162,15 @@ def process_wrapper(values):
 def process_batch(values):
     with multiprocessing.Pool(64) as pool:
         # noinspection PyTypeChecker
-        pool.starmap(process_wrapper, values)
+        pool.map(process_wrapper, values)
 
 
 def main():
     df = pd.read_excel(excel_file, header=None)
     accounting_list = list(df.loc[:, 0])
     operations: List[Tuple[str, Union[str, None]]]
-    operations = [*'AlphaOpIndNeut AlphaOpIndNeut_new AlphaOpMktCapNeut AlphaOpCapSecNeut'.split(), None]
+    operations = [*'AlphaOpIndNeut AlphaOpMktCapNeut AlphaOpCapSecNeut'.split(), None]
+    # operations = [*'AlphaOpIndNeut AlphaOpIndNeut_new AlphaOpMktCapNeut AlphaOpCapSecNeut'.split(), None]
     values = [{'accounting': accounting, 'operation': operation}
               for accounting in accounting_list for operation in operations]
     process_batch(values)
