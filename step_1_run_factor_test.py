@@ -27,6 +27,7 @@ def process(
         output_dir=global_output_dir,
         dump_alpha='StatsBacktest',  # 在后面生成csv的时候要改成StatsDumpAlpha
 ):
+    operation = None if operation == 'Empty' else operation
     # 任何情况下都要确保这个标识符不重复，即同样的标识符一定对应着完全一样的项目
     identifier = '-'.join((f'{accounting}',
                            f'{"p" if alpha_sign > 0 else "n"}{abs(alpha_sign):.0f}',
@@ -133,6 +134,7 @@ def process(
             'accounting': accounting,
             'operation': operation,
             'alpha-sign': alpha_sign,
+            'dump-alpha': dump_alpha,
         }
         output_dir.mkdir(parents=True, exist_ok=True)
         shutil.copy(pylib_file, output_dir / f'{accounting}.py')

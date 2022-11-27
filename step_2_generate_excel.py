@@ -22,7 +22,7 @@ def get_dataframe(directory: Path = output_dir) -> pd.DataFrame:
         从 meta.json 中读取得到的结果。
     """
     data = []
-    keys = 'accounting operation'.split()
+    keys = 'accounting operation alpha-sign dump-alpha'.split()
     for i in directory.glob('*/meta.json'):
         with open(i, 'r', encoding='utf-8') as f:
             datum = json.load(f)
