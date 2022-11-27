@@ -4,7 +4,7 @@ import shutil
 import pandas as pd
 
 from step_1_run_factor_test import base_dir, process_batch
-from step_2_generate_excel import get_dataframe, output_best_dir
+from step_2_generate_excel_and_modify_sign import get_dataframe, output_best_dir
 
 output_csv_dir = base_dir / 'output-csv'
 

@@ -1,12 +1,9 @@
-# /home/student/work/alpha/pybsim/bin/backtest_new.py
-# /datas/student/AlphaTest/dumplAlphas.csv
-# /home/student/work/alpha/pybsim/output
 import multiprocessing
 
 import pandas as pd
 
 from step_1_run_factor_test import get_identifier, global_dump_alpha_dir, run_command
-from step_2_generate_excel import get_dataframe, output_best_dir
+from step_2_generate_excel_and_modify_sign import get_dataframe, output_best_dir
 from step_3_generate_csv import output_csv_dir
 
 
