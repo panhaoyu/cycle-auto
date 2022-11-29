@@ -1,10 +1,18 @@
 import multiprocessing
+from typing import List, Tuple, Any, Dict
 
 import pandas as pd
 
 from step_1_run_factor_test import get_identifier, global_dump_alpha_dir, run_command
 from step_2_generate_excel_and_modify_sign import get_dataframe, output_best_dir
 from step_3_generate_csv import output_csv_dir
+
+
+def iter_identifiers(df: pd.DataFrame) -> List[Tuple[str, Dict[str, Any]]]:
+    identifier_keys = ['accounting', 'operation', 'alpha_sign', 'dump_alpha']
+    for k, v in df.to_dict('index').items():
+        identifier = get_identifier(*(v[k] for k in identifier_keys))
+        yield identifier, v
 
 
 def main():
