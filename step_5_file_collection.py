@@ -26,15 +26,20 @@ def copy_all_python_files(df: pd.DataFrame):
         python_files = [p for p in python_files if not p.stem == 'Alpha']
         python_src = python_files[0]
         alpha_name = data['alpha_name']
+        accounting = data['accounting']
         python_dst = output_submit_dir / f'{alpha_name}.py'
         shutil.copy(python_src, python_dst)
 
         # 复制config文件
         config_src = output_best_dir / identifier / 'config.xml'
-        config_dst = output_submit_dir / f'{alpha_name}.config'
+        config_dst = output_submit_dir / f'{alpha_name}.xml'
         shutil.copy(config_src, config_dst)
 
-        # 修改config文件
+        with open(config_dst, 'r') as f:
+            content = f.read()
+        content = content.replace(identifier, f'{alpha_name}').replace(f'Alpha_XYF_{accounting}', alpha_name)
+        with open(config_dst, 'w') as f:
+            f.write(content)
 
 
 def main():

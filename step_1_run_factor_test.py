@@ -3,9 +3,10 @@ import json
 import multiprocessing
 import os
 import shutil
+from contextlib import contextmanager
 from pathlib import Path
 from subprocess import Popen, PIPE
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, ContextManager
 
 import pandas as pd
 from lxml import etree
@@ -42,6 +43,54 @@ def get_identifier(accounting, operation, alpha_sign, dump_alpha):
                      f'{"p" if alpha_sign > 0 else "n"}{abs(alpha_sign):.0f}',
                      f'{"Empty" if operation is None else operation}',
                      dump_alpha))
+
+
+@contextmanager
+def open_xml_file_and_write_inplace(path: Path) -> ContextManager[etree.ElementTree]:
+    with open(path, 'rb') as f:
+        config_content = f.read()
+    tree = etree.fromstring(config_content)
+    yield tree
+    config_content = etree.tostring(tree)
+    with open(path, 'wb') as f:
+        f.write(config_content)
+
+
+def set_config(
+        config_file: Path,
+        pylib_file: Path,  # base_dir / 'temp' / f'{identifier}' / f'Alpha_XYF_{accounting}.py'
+        bin_dir: Path,  # base_dir / 'temp' / f'{identifier}'
+        operation: str = '',  # a string
+        dump_alpha: str = None,  # StatsBacktest
+        dump_alpha_dir: Path = None,  # Path('/datas/student/AlphaTest-Auto') / identifier
+):
+    """原位修改config文件。各个参数都将直接设置到属性上，而不会对其进行运算。"""
+    with open_xml_file_and_write_inplace(config_file) as tree:
+        # 设置 alphacode 的路径
+        portfolio_element = tree.xpath('//Portfolio')[0]
+        portfolio_element.attrib['alphacode'] = str(bin_dir)
+        alpha_element = portfolio_element.xpath('./Alpha')[0]
+        alpha_element.attrib['id'] = pylib_file.stem
+        config_element = alpha_element.xpath('./Config')[0]
+        config_element.attrib['alphaname'] = pylib_file.stem
+
+        # 设置 operation
+        operations_element = alpha_element.xpath('./Operations')[0]
+        operation_element = operations_element.xpath('./Operation')[0]
+        if operation is None:
+            operations_element.remove(operation_element)
+        else:
+            operation_element.attrib['moduleId'] = operation
+
+        # 设置 dump alpha
+        stats_element = portfolio_element.xpath('./Stats')[0]
+        stats_element.attrib['moduleId'] = dump_alpha
+
+        # 设置 dump alpha directory
+        if dump_alpha_dir is not None:
+            tree.xpath('//Modules/Module[@id="StatsDumpAlpha"]')[0].attrib['dumpAlphaDir'] = str(dump_alpha_dir)
+            tree.xpath('//Modules/Module[@id="StatsBacktest"]')[0].attrib['dumpAlphaDir'] = str(dump_alpha_dir)
+            alpha_element.attrib['dumpAlphaDir'] = str(dump_alpha_dir)
 
 
 def process(
@@ -91,41 +140,6 @@ def process(
             f.writelines(lines)
         shutil.copy(pylib_file, output_dir / 'Alpha.py')
 
-    def set_config():
-        with open(config_file, 'rb') as f:
-            config_content = f.read()
-        tree = etree.fromstring(config_content)
-
-        # 设置 alphacode 的路径
-        portfolio_element = tree.xpath('//Portfolio')[0]
-        portfolio_element.attrib['alphacode'] = str(bin_dir)
-        alpha_element = portfolio_element.xpath('./Alpha')[0]
-        alpha_element.attrib['id'] = pylib_file.stem
-        config_element = alpha_element.xpath('./Config')[0]
-        config_element.attrib['alphaname'] = pylib_file.stem
-
-        # 设置 operation
-        operations_element = alpha_element.xpath('./Operations')[0]
-        operation_element = operations_element.xpath('./Operation')[0]
-        if operation is None:
-            operations_element.remove(operation_element)
-        else:
-            operation_element.attrib['moduleId'] = operation
-
-        # 设置 dump alpha
-        stats_element = portfolio_element.xpath('./Stats')[0]
-        stats_element.attrib['moduleId'] = dump_alpha
-
-        # 设置 dump alpha directory
-        tree.xpath('//Modules/Module[@id="StatsDumpAlpha"]')[0].attrib['dumpAlphaDir'] = str(dump_alpha_dir)
-        tree.xpath('//Modules/Module[@id="StatsBacktest"]')[0].attrib['dumpAlphaDir'] = str(dump_alpha_dir)
-        alpha_element.attrib['dumpAlphaDir'] = str(dump_alpha_dir)
-
-        config_content = etree.tostring(tree)
-        with open(config_file, 'wb') as f:
-            f.write(config_content)
-        shutil.copy(config_file, output_dir / 'config.xml')
-
     def execute():
         """执行原有的 my_factor_test 脚本，并获取结果"""
         print(f'Executing {identifier} ...')
@@ -153,7 +167,14 @@ def process(
     try:
         copy_bin()
         set_changeable_values()
-        set_config()
+        set_config(
+            config_file=config_file,
+            pylib_file=pylib_file,
+            bin_dir=bin_dir,
+            dump_alpha_dir=dump_alpha_dir,
+            operation=operation,
+            dump_alpha=dump_alpha,
+        )
         execute()
         save_result()
     except:
