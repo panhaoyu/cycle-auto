@@ -14,7 +14,7 @@ def set_the_mapping_between_names():
     df = df.sort_values('accounting').reset_index(drop=True)
     df['alpha_name'] = [f'Alpha_XYF_{i + 101}' for i in df.index]
     # noinspection PyTypeChecker
-    df.to_csv(output_best_dir / 'data.csv', index=None)
+    df.to_csv(output_submit_dir / 'data.csv', index=None)
     return df
 
 
@@ -30,16 +30,17 @@ def copy_all_python_files(df: pd.DataFrame):
         python_dst = output_submit_dir / f'{alpha_name}.py'
         shutil.copy(python_src, python_dst)
 
-        # 复制config文件
+        # 复制config文件并修改
         config_src = output_best_dir / identifier / 'config.xml'
         config_dst = output_submit_dir / f'{alpha_name}.xml'
         shutil.copy(config_src, config_dst)
-
         with open(config_dst, 'r') as f:
             content = f.read()
         content = content.replace(identifier, f'{alpha_name}').replace(f'Alpha_XYF_{accounting}', alpha_name)
         with open(config_dst, 'w') as f:
             f.write(content)
+
+
 
 
 def main():
