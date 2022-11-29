@@ -18,7 +18,7 @@ def set_the_mapping_between_names():
     return df
 
 
-def copy_all_python_files(df: pd.DataFrame):
+def copy_files(df: pd.DataFrame):
     for identifier, data in iter_identifiers(df):
         # 复制python文件
         python_files = list((output_best_dir / identifier).glob('*.py'))
@@ -43,7 +43,7 @@ def copy_all_python_files(df: pd.DataFrame):
 def main():
     shutil.rmtree(output_submit_dir, ignore_errors=True), output_submit_dir.mkdir()
     df = set_the_mapping_between_names()
-    copy_all_python_files(df)
+    copy_files(df)
 
 
 if __name__ == '__main__':
